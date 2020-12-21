@@ -16,7 +16,7 @@ storage.py, строка(row)178
 Измените директорию для сохранения загружаемых файлов, если она у Вас другая/Change the path to save the file, if you have a different way of saving files
 Приемлемо прямое указание пути сохранения файлов/Direct indication of the file save path is acceptable 
 
-###Мой текущий пть для сохранения файлов/ My current path to download files
+### Мой текущий пть для сохранения файлов/ My current path to download files
 path_to = os.path.join(os.path.expandvars("%userprofile%"), "Downloads", name)
 
 ## 3. Запуск приложения через терминал/Run app thru the terminal
