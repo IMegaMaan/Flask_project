@@ -1,0 +1,32 @@
+{%extends 'base.html' %}
+{% block main %}
+
+<div class="container">
+{%for dir_list in db_directories %}
+
+<div class="row row-cols-1 row-cols-md-3 mb-3 text-center">
+    {%for dir in dir_list %}
+    <div class="col">
+      <div class="card mb-4 shadow-sm">
+      <div class="card-header">
+        <h4 class="my-0 fw-normal">{{ dir.name }}</h4>
+      </div>
+      <form method="POST" action="">
+          <div class="card-body">
+            <ul class="list-unstyled mt-3 mb-4">
+              <li>{{ dir.description }}</li>
+              <li>Дата создания: {{ dir.date.date() }}</li>
+            </ul>
+            <a href ="/directory/{{ dir.id }}" class="w-100 btn btn-lg btn-outline-primary">Войти</a>
+            <a href="/directory/delete/{{ dir.id }}" class="w-100 btn btn-lg btn-danger">Удалить</a>
+          </div>
+      </form>
+    </div>
+    </div>
+    {% endfor %}
+  </div>
+
+{% endfor %}
+</div>
+
+{% endblock %}

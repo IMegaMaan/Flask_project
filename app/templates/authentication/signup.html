@@ -1,0 +1,39 @@
+<!-- My signup template -->
+{%extends 'base.html' %}
+
+{% block add_css_styles %}
+<style>
+    div#unique{
+        width: 30%;
+        margin-top: 50px;
+        }
+</style>
+{% endblock %}
+
+{% block main %}
+<div class="container" id="unique">
+    {% with messages = get_flashed_messages() %}
+        {% if  messages[0]%}
+            {{ messages[0]|safe }}
+        {% endif %}
+    {% endwith %}
+     <form class="form-signin" method="post">
+     <h1 class="h3 mb-3 font-weight-normal">Введите логин и пароль</h1>
+
+      <label for="inputName" class="sr-only">Логин</label>
+      <input name="username" type="email" id="inputName" class="form-control" placeholder="Логин" required autofocus="">
+
+      <label for="inputPassword" class="sr-only">Пароль</label>
+      <input name="password" type="password" id="inputPassword" class="form-control" placeholder="Пароль" required>
+
+      <label for="inputPassword" class="sr-only">Повторите Пароль</label>
+      <input name="password_repeat" type="password" id="inputPasswordRepeat" class="form-control" placeholder="Повторите Пароль" required>
+
+
+      <button class="btn btn-lg btn-primary btn-block" type="submit">{{ title }}</button>
+
+    </form>
+</div>
+
+{% endblock %}
+

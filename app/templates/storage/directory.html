@@ -1,0 +1,53 @@
+{%extends 'base.html' %}
+
+{% block main %}
+<div class="container">
+    <h1>Хранение файлов начинается здесь</h1>
+    {% if  get_flashed_messages()%}
+        {{ get_flashed_messages()[0]|safe }}
+    {% endif %}
+
+
+    <div class="alert alert-info">
+        <h2>Имя директории:{{ db_directories.name }}</h2>
+        <p>Описание директории:{{ db_directories.description }}</p>
+        <a href="/directory/update/{{ db_directories.id }}" class="btn btn-warning">&#9998</a>
+        <a href="/directory/delete/{{ db_directories.id }}" class="btn btn-danger">Удалить директорию &#10008</a>
+        <h4>Загрузка файла в директорию:</h4>
+        <form enctype="multipart/form-data" method="post" action="/directory/{{ db_directories.id }}/upload">
+            <input type="file" name="file_from_user"><br><br>
+            <input type="submit" value="Загрузить"  class="btn btn-success">
+        </form>
+    </div>
+
+{%if db_files == [] %}
+    <div class="container">
+        <h2>У вас пока нету файлов ¯\_(ツ)_/¯ . Загрузите. </h2>
+    </div>
+
+{% else %}
+    <div class="container alert alert-success">
+    {% for file in db_files%}
+            <p>Название файла: {{ file.name }}</p>
+            <p>Количество скачиваний файла: {{ file.download_count }}</p>
+
+        <form method="post" action="/directory/{{ file.id }}/remove">
+            <input type="submit" class="btn btn-warning" value="Переместить файл в другую директорию">
+            <p><select name="directory_to_move_id">
+            {% for dir in db_all_directories %}
+                <option value="{{ dir.id }}">{{ dir.name }}</option> <!-- Проверить работоспособность -->
+            {% endfor %}
+           </select></p>
+        </form>
+        <form method="post" action="/directory/{{ file.id }}/delete">
+            <input type="submit"  class="btn btn-danger" value="Удалить">
+        </form>
+        <form method="post" action="/directory/{{ file.id }}/download">
+            <input type="submit"  class="btn btn-success" value="Скачать файл">
+        </form>
+
+    {% endfor %}
+    </div>
+{% endif %}
+</div>
+{% endblock %}
