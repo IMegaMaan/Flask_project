@@ -1,5 +1,6 @@
 # Flask_project
-This Flask project may create directory, upload and download files into directories for registered users
+Приложение предназначено для создания директорий, загружайте и скачивайте файлы, перемещайте внутри директорий- только для зарегистрированных пользователей/ This Flask project may create directory, upload and download files into directories for registered users.
+Для использвания только на локальном сервере/ Only for using upon the local machine
 
 ## 1. Создание БД/Data base create
    
