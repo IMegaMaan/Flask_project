@@ -1,10 +1,7 @@
+from flask import url_for
 from flask_login import UserMixin
-from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 from . import db
-
-# import sqlalchemy
-# from sqlalchemy import create_engine
 
 
 # model for definition directory
@@ -13,9 +10,20 @@ class Directories(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(40), nullable=True)
     description = db.Column(db.String(400), nullable=False)
-    date = db.Column(db.DateTime, default=datetime.now())
+    date = db.Column(db.DateTime, default=datetime.now)
     user_id_value = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     uploaded_files = db.relationship("UploadedFiles", backref="directory")
+
+    def to_json(self):
+        json_directory = {
+            'url': url_for('storage.directories'),
+            'id': id,
+            'name': self.name,
+            'description': self.description,
+            'date': self.date,
+            'user_id_value': self.user_id_value,
+        }
+        return json_directory
 
     def __repr__(self):
         return '<Directories %r>' % self.id
@@ -30,10 +38,13 @@ class UploadedFiles(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     download_count = db.Column(db.Integer, default=0)
     name = db.Column(db.String(50), nullable=True)
-    date = db.Column(db.DateTime, default=datetime.now())
+    date = db.Column(db.DateTime, default=datetime.now)
     parent_id_value = db.Column(db.Integer, db.ForeignKey('directory.id'), nullable=True)
+    # Additional information about full pathname of file. it may be delete by changing mechanic of usage information
+    # of name
+    name_to_download = db.Column(db.String(90), nullable=True, unique=True)
 
-    def __repr__(self):  # в случае обращения к объекту класса, будет выдаваться объект и id
+    def __repr__(self):
         return '<UploadedFiles %r>' % self.id
 
     def __init__(self, *args, **kwargs):
@@ -44,47 +55,11 @@ class UploadedFiles(db.Model):
 class User(UserMixin, db.Model):
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
-    password = db.Column(db.String(50), nullable=True)
+    password = db.Column(db.String(200), nullable=True)
     name = db.Column(db.String(50), nullable=True, unique=True)
     directories = db.relationship("Directories", backref="user")
-
-    '''
-    #тестовые методы для работы с БД
-    # добавление методов на работу с БД
-    # connection method
-    def connect(self, db, host='localhost', port=5432):
-        """Returns a connection and a metadata object"""
-        # We connect with the help of the PostgreSQL URL
-        url = f'postgresql://{self.name}:{self.password}@{host}:{port}/{db}'
-
-        # The return value of create_engine() is our connection object
-        con = sqlalchemy.create_engine(url, client_encoding='utf8')
-
-        # We then bind the connection to MetaData()
-        meta = sqlalchemy.MetaData(bind=con, reflect=True)
-
-        return con, meta
-
-    # create table method
-    def createTable(self):
-        db = create_engine(self.db_string)
-        db.execute("CREATE TABLE IF NOT EXISTS films (title text, director text, year text)")
-
-
-    #add a new directory method
-    def add_new_directory(self):
-        # подключение к БД
-        db_string = "postgresql+psycopg2://self.name:self.password@localhost/postgres"
-        db.execute("INSERT INTO films(title, director, year) VALUES (%s,%s, %s)", title, director, year)
-
-    #and more methods for work with files 
-    '''
-
-    def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
-
-    def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
+    # Roles of Users. Default = 1. Just a User
+    role = db.Column(db.Integer, db.ForeignKey('roles.id'), default=1)
 
     def __repr__(self):
         return "<User(id='%s', name='%s', password='%s')>" % (self.id, self.name, self.password)
@@ -92,21 +67,51 @@ class User(UserMixin, db.Model):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+    def role_name(self):
+        '''
+        this metod create name of role for SQL
+        :return: new_name without '@' inside
+        '''
+        return (''.join(self.name.split(sep='@'))).lower()
 
-'''
-# additional model for role setting
+    def connect_to_database(self):
+        '''
+        Method create session of current user
+        :return: user_session
+        '''
+        from sqlalchemy import create_engine
+        from sqlalchemy.orm import sessionmaker
+        url = "127.0.0.1:5432"
+        database_name = 'flask_database'
+        some_engine = create_engine(
+            'postgresql+psycopg2://{user}:{pw}@{url}/{db}'.format(user=self.role_name(), pw=self.password,
+                                                                  url=url,
+                                                                  db=database_name))
+        Session = sessionmaker(bind=some_engine)
+        user_session = Session()
+        return user_session
+
+    def to_json(self):
+        json_user = {
+            'url': url_for('authentication.profile', _external=True),
+            'username': self.name,
+            'role': self.role,
+            'directories': url_for('storage.directories', _external=True),
+            'user_session': self.connect_to_database(),
+            'role_name': self.role_name()
+        }
+        return json_user
+
+
+# Model for role definition
 class Role(db.Model):
-    __tablename__ = 'uploads'
+    __tablename__ = 'roles'
     id = db.Column(db.Integer, primary_key=True)
-    download_count = db.Column(db.Integer, default=0)
-    name = db.Column(db.String(50), nullable=True)
-    date = db.Column(db.DateTime, default=datetime.now())
-    parent_id_value = db.Column(db.Integer, db.ForeignKey('directory.id'), nullable=True)
+    name = db.Column(db.String(50), nullable=True, unique=True)
+    users = db.relationship("User", backref="roles")
 
-    def __repr__(self):  # в случае обращения к объекту класса, будет выдаваться объект и id
-        return '<UploadedFiles %r>' % self.id
+    def __repr__(self):
+        return '<Role %r>' % self.id
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-'''

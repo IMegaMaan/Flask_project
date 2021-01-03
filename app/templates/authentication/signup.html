@@ -18,20 +18,12 @@
         {% endif %}
     {% endwith %}
      <form class="form-signin" method="post">
-     <h1 class="h3 mb-3 font-weight-normal">Введите логин и пароль</h1>
-
-      <label for="inputName" class="sr-only">Логин</label>
-      <input name="username" type="email" id="inputName" class="form-control" placeholder="Логин" required autofocus="">
-
-      <label for="inputPassword" class="sr-only">Пароль</label>
-      <input name="password" type="password" id="inputPassword" class="form-control" placeholder="Пароль" required>
-
-      <label for="inputPassword" class="sr-only">Повторите Пароль</label>
-      <input name="password_repeat" type="password" id="inputPasswordRepeat" class="form-control" placeholder="Повторите Пароль" required>
-
-
-      <button class="btn btn-lg btn-primary btn-block" type="submit">{{ title }}</button>
-
+        <h1 class="h3 mb-3 font-weight-normal">Введите логин и пароль</h1>
+         {{ form.username }}
+         {{ form.password }}
+         {{ form.password_repeat }}
+         {{ form.submit }}
+         <p class="mt-5 mb-3 text-muted">© 2020 - 2021</p>
     </form>
 </div>
 

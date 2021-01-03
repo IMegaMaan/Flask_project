@@ -11,16 +11,17 @@
       <div class="card-header">
         <h4 class="my-0 fw-normal">{{ dir.name }}</h4>
       </div>
-      <form method="POST" action="">
-          <div class="card-body">
-            <ul class="list-unstyled mt-3 mb-4">
-              <li>{{ dir.description }}</li>
-              <li>Дата создания: {{ dir.date.date() }}</li>
-            </ul>
-            <a href ="/directory/{{ dir.id }}" class="w-100 btn btn-lg btn-outline-primary">Войти</a>
-            <a href="/directory/delete/{{ dir.id }}" class="w-100 btn btn-lg btn-danger">Удалить</a>
-          </div>
-      </form>
+      <div class="card-body">
+        <ul class="list-unstyled mt-3 mb-4">
+          <li>{{ dir.description }}</li>
+          <li>Дата создания: {{ dir.date.date() }}</li>
+        </ul>
+        <a href="{{ url_for('storage.directory', id=dir.id ) }}" class="w-100 btn btn-lg btn-outline-primary">Войти</a>
+        <form method="post" action="{{ url_for('storage.directory_delete', id=dir.id) }}">
+            <input type="submit" class="w-100 btn btn-lg btn-danger" value="Удалить">
+        </form>
+      </div>
+
     </div>
     </div>
     {% endfor %}

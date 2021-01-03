@@ -2,11 +2,11 @@
 {% block main %}
 <div class="container">
     <h1>Добавление новой директории</h1>
-    <form method="post">
-        <input type="text" name="name" class="form-control" id="name" placeholder="Имя директории"><br>
-        <textarea name="description" class="form-control" id="description"
-                  placeholder="Описание для директории или важные заметки"></textarea><br>
-        <input type="submit" class="btn btn-warning" value="Создать">
+    <form method="post" action="">
+        {{ form.name }}
+        {{ form.description }}
+        {{ form.submit }}
     </form>
+    <script src="directory_create.js"></script>
 </div>
 {% endblock %}

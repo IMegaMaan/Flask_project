@@ -11,12 +11,16 @@
     <div class="alert alert-info">
         <h2>Имя директории:{{ db_directories.name }}</h2>
         <p>Описание директории:{{ db_directories.description }}</p>
-        <a href="/directory/update/{{ db_directories.id }}" class="btn btn-warning">&#9998</a>
-        <a href="/directory/delete/{{ db_directories.id }}" class="btn btn-danger">Удалить директорию &#10008</a>
+
+        <a href="{{ url_for('storage.directory_update', id=db_directories.id) }}" class="btn btn-warning">&#9998</a>
+        <form method="post" action="{{ url_for('storage.directory_delete', id=db_directories.id) }}">
+            <input type="submit" class="btn btn-danger" value="Удалить директорию &#10008">
+        </form>
+
         <h4>Загрузка файла в директорию:</h4>
-        <form enctype="multipart/form-data" method="post" action="/directory/{{ db_directories.id }}/upload">
-            <input type="file" name="file_from_user"><br><br>
-            <input type="submit" value="Загрузить"  class="btn btn-success">
+        <form enctype="multipart/form-data" method="post" action="{{ url_for('storage.upload', id=db_directories.id) }}">
+            {{ form.file }}
+            {{ form.submit }}
         </form>
     </div>
 
@@ -27,22 +31,22 @@
 
 {% else %}
     <div class="container alert alert-success">
-    {% for file in db_files%}
+    {% for file in db_files %}
             <p>Название файла: {{ file.name }}</p>
             <p>Количество скачиваний файла: {{ file.download_count }}</p>
 
-        <form method="post" action="/directory/{{ file.id }}/remove">
+        <form method="post" action="{{ url_for('storage.file_remove_from_directory', id=file.id) }}">
             <input type="submit" class="btn btn-warning" value="Переместить файл в другую директорию">
             <p><select name="directory_to_move_id">
             {% for dir in db_all_directories %}
-                <option value="{{ dir.id }}">{{ dir.name }}</option> <!-- Проверить работоспособность -->
+                <option value="{{ dir.id }}">{{ dir.name }}</option>
             {% endfor %}
            </select></p>
         </form>
-        <form method="post" action="/directory/{{ file.id }}/delete">
+        <form method="post" action="{{ url_for('storage.file_delete_from_directory', id=file.id) }}">
             <input type="submit"  class="btn btn-danger" value="Удалить">
         </form>
-        <form method="post" action="/directory/{{ file.id }}/download">
+        <form method="post" action="{{ url_for('storage.file_download', id=file.id) }}">
             <input type="submit"  class="btn btn-success" value="Скачать файл">
         </form>
 
