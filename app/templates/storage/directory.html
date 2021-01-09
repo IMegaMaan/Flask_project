@@ -7,38 +7,40 @@
         {{ get_flashed_messages()[0]|safe }}
     {% endif %}
 
-
     <div class="alert alert-info">
-        <h2>Имя директории:{{ db_directories.name }}</h2>
-        <p>Описание директории:{{ db_directories.description }}</p>
+        <h2>Имя директории:{{ response.params.db_directories.name }}</h2>
+        <p>Описание директории:{{ response.params.db_directories.description }}</p>
 
-        <a href="{{ url_for('storage.directory_update', id=db_directories.id) }}" class="btn btn-warning">&#9998</a>
-        <form method="post" action="{{ url_for('storage.directory_delete', id=db_directories.id) }}">
+
+        <a href="{{ url_for('storage.directory_update', id=response.params.db_directories.id) }}" class="btn btn-warning">&#9998</a>
+        <form method="post" action="{{ url_for('storage.directory_delete', id=response.params.db_directories.id) }}">
             <input type="submit" class="btn btn-danger" value="Удалить директорию &#10008">
         </form>
 
         <h4>Загрузка файла в директорию:</h4>
-        <form enctype="multipart/form-data" method="post" action="{{ url_for('storage.upload', id=db_directories.id) }}">
-            {{ form.file }}
-            {{ form.submit }}
+        <form enctype="multipart/form-data" method="post" action="{{ url_for('storage.upload', id=response.params.db_directories.id) }}">
+            {{ response.params.form.file }}
+            {{ response.params.form.submit }}
         </form>
+
     </div>
 
-{%if db_files == [] %}
+<!-- проверено до сюда -->
+
+{%if response.params.db_files == [] %}
     <div class="container">
         <h2>У вас пока нету файлов ¯\_(ツ)_/¯ . Загрузите. </h2>
     </div>
 
 {% else %}
     <div class="container alert alert-success">
-    {% for file in db_files %}
+    {% for file in response.params.db_files %}
             <p>Название файла: {{ file.name }}</p>
             <p>Количество скачиваний файла: {{ file.download_count }}</p>
-
         <form method="post" action="{{ url_for('storage.file_remove_from_directory', id=file.id) }}">
             <input type="submit" class="btn btn-warning" value="Переместить файл в другую директорию">
             <p><select name="directory_to_move_id">
-            {% for dir in db_all_directories %}
+            {% for dir in response.params.db_all_directories %}
                 <option value="{{ dir.id }}">{{ dir.name }}</option>
             {% endfor %}
            </select></p>
@@ -53,5 +55,8 @@
     {% endfor %}
     </div>
 {% endif %}
+
+
 </div>
+<script src="{{ url_for('static', filename='directory.js') }}"></script>
 {% endblock %}

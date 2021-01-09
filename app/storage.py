@@ -12,28 +12,45 @@ storage = Blueprint('storage', __name__)
 # Home page
 @storage.route('/')
 def index():
-    return render_template('storage/index.html', title='Домашняя страница')
+    response = {
+        "params": {'title': 'Домашняя страница'}
+    }
+    return render_template('storage/index.html', response=response)
 
 
 # Create directory
 @storage.route('/create_directory', methods=['POST', 'GET'])
 @login_required
 def create_directory():
-    form = DirectoriesForm()
-    if request.method == 'POST' and request.form['name'] != '':
-        name = form.name.data
-        description = form.description.data if form.description.data else ''
+    print(request.method)
+    if request.method == 'POST':
+        #Work with JSON-rpc object
+        response = request.get_json()
+        print(response)
+        name = response['params']['form']['name']
+        description = response['params']['form']['description'] if response['params']['form']['description'] else ''
         #Create directory in SQL table
         #Connect to data base by user name and password
         user_session = current_user.connect_to_database()
         directory = Directories(name=name, description=description, user_id_value=current_user.id)
         user_session.add(directory)
         user_session.commit()
+        directory_json = directory.to_json()
         #Disconnect from data base
         user_session.close()
-        return redirect(url_for('storage.create_directory'))
+        # Return JSON
+        return jsonify({
+            "jsonrpc": "2.0",
+            "method": "create_directory",
+            "params": {'directory': directory_json},
+            "id": current_user.id
+        })
     elif request.method == 'GET':
-        return render_template('storage/create_directory.html', title='Создание директории', form=form)
+        form = DirectoriesForm()
+        response = {
+            "params": {'title': 'Создание директории', 'form': form.form_to_json()}
+        }
+        return render_template('storage/create_directory.html', response=response)
     else:
         return 'Некорректное создание формы! Обратитесь к администратору!'
 
@@ -45,32 +62,29 @@ def directory_update(id):
     # Connect to data base by using user name and password
     user_session = current_user.connect_to_database()
     db_directories = user_session.query(Directories).filter_by(id=id).first()
-    form = DirectoriesForm()
     if request.method == 'POST':
-        # 1)распарсить request метод из json
-        # new_directory = request.get_json()
-        # 2) внести изменения в json
-        # new_directory
-        # 3) отправить измененный json
-
-
-
-        db_directories.name = form.name.data
-        db_directories.description = form.description.data
+        directory = request.get_json()
+        db_directories.name = directory['params']['form']['name']
+        db_directories.description = directory['params']['form']['description']
         id = db_directories.id
         user_session.commit()
+        db_directories_json = db_directories.to_json()
         user_session.close()
-        home_redirect = '/directory/' + str(id)
-        return redirect(home_redirect)
+        # Return JSON
+        return jsonify({
+            "jsonrpc": "2.0",
+            "method": "refresh_directory",
+            "params": {'title': 'Создание директории', 'db_directories': db_directories_json},
+            'id': id
+        })
     elif request.method == 'GET':
+        form = DirectoriesForm()
         form.name.data = db_directories.name
         form.description.data = db_directories.description
-        # jsonify(post.to_json())
-        return render_template('storage/directory_update.html', title=db_directories.name,
-                               db_directories=db_directories, form=form)
-
-
-
+        response = {
+            "params": {'title': db_directories.name, 'form': form.form_to_json(), 'db_directories': db_directories}
+        }
+        return render_template('storage/directory_update.html', response=response)
 
 
 # Directories views
@@ -89,7 +103,10 @@ def directories():
         stop += 3
         total_directories.append(db_directories[start:stop:1])
     db_directories = total_directories
-    return render_template('storage/directories.html', title='Хранилище файлов', db_directories=db_directories)
+    response = {
+        "params": {'title': 'Хранилище файлов', 'db_directories': db_directories}
+    }
+    return render_template('storage/directories.html', response=response)
 
 
 # One directory view
@@ -104,12 +121,16 @@ def directory(id):
     db_files = user_session.query(UploadedFiles).filter_by(parent_id_value=id).all()
     # Disconnect from user session
     user_session.close()
-    return render_template('storage/directory.html', title=db_directories.name, db_directories=db_directories,
-                           db_files=db_files, db_all_directories=db_all_directories, form=form)
+    response = {
+        "params": {'title': db_directories.name, 'form': form.form_to_json(), 'db_directories': db_directories,
+                   'db_files': db_files, 'db_all_directories': db_all_directories}
+    }
+    return render_template('storage/directory.html', response=response)
 
 
 # Delete the directory and all files inside
-@storage.route('/directory/delete/<int:id>', methods=['POST', 'GET'])
+# need frontend
+@storage.route('/directory/delete/<int:id>', methods=['POST'])
 @login_required
 def directory_delete(id):
     if request.method == 'POST':
@@ -127,16 +148,22 @@ def directory_delete(id):
         user_session.commit()
         # Disconnect from user session
         user_session.close()
-        return redirect(url_for('storage.directories'))
+        return jsonify({
+            "jsonrpc": "2.0",
+            "method": "deleted_directory",
+            "params": {'title': 'Хранилище файлов','home_redirect': url_for('storage.directories')},
+            'id': id
+        })
 
 
 # File upload
 @storage.route('/file/upload/<int:id>', methods=['POST'])
 @login_required
 def upload(id):
-    form = FileForm()
     if request.method == 'POST':
-        name = form.file.data.filename
+        response = request.get_json()
+        filename = response['params']['form'].data.filename
+        # name = form.file.data.filename
         user_id = current_user.id
         # Connect to data base by using user name and password
         user_session = current_user.connect_to_database()
@@ -145,23 +172,28 @@ def upload(id):
         for direc in all_users_directories:
             test_model = UploadedFiles.query.filter_by(parent_id_value=direc.id).all()
             for model in test_model:
-                if model.name == name:
+                if model.name == filename:
                     return 'Такой файл уже загружен. Дубликатов быть не должно.'
-        filename = form.file.data.filename
+        # filename = form.file.data.filename
         name_to_download = current_user.name + filename
         path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'static', 'uploads', name_to_download)
-        form.file.data.save(path)
-        upload_model = UploadedFiles(parent_id_value=id, name=name, download_count=0, name_to_download=name_to_download)
+        response[1]['file'].data.save(path)
+        # form.file.data.save(path)
+        upload_model = UploadedFiles(parent_id_value=id, name=filename, download_count=0, name_to_download=name_to_download)
+        json_object = upload_model.to_json()
         user_session.add(upload_model)
         user_session.commit()
         #Disconnect from data base
         user_session.close()
-        home_redirect = '/directory/' + str(id)
-        return redirect(home_redirect)
+        return jsonify({
+            "jsonrpc": "2.0",
+            "method": "file_uploaded",
+            "params": {'json_object': json_object},
+            'id': id
+        })
 
 
 # File delete
-# Checked test is ok
 @storage.route('/file/delete/<int:id>', methods=['POST'])
 @login_required
 def file_delete_from_directory(id):
@@ -178,12 +210,15 @@ def file_delete_from_directory(id):
         user_session.commit()
         user_session.close()
         # return to directory
-        home_redirect = '/directory/' + str(parent_id)
-        return redirect(home_redirect)
+        return jsonify({
+            "jsonrpc": "2.0",
+            "method": "file_deleted",
+            "params": {'db_file': db_file},
+            'id': parent_id
+        })
 
 
 # Download file
-# Решить вопрос с путем сохранения файла у других пользователей!!!
 @storage.route('/file/download/<int:id>', methods=['POST'])
 @login_required
 def file_download(id):
@@ -191,7 +226,6 @@ def file_download(id):
         # Connect to data base by using user name and password
         user_session = current_user.connect_to_database()
         db_file = user_session.query(UploadedFiles).filter_by(id=id).first()
-        parent_id = db_file.parent_id_value
         name_to_download = db_file.name_to_download
         path_from = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'static', 'uploads', name_to_download)
         # My way to download files
@@ -202,8 +236,12 @@ def file_download(id):
         #Disconnect from user database
         user_session.close()
         flash('<div class="alert alert-success">Загрузка прошла успешно</div>')
-        home_redirect = '/directory/' + str(parent_id)
-        return redirect(home_redirect)
+        return jsonify({
+            "jsonrpc": "2.0",
+            "method": "file_download",
+            "params": {'db_file': db_file},
+            'id': id
+        })
 
 
 # Remove file
@@ -211,16 +249,25 @@ def file_download(id):
 @login_required
 def file_remove_from_directory(id):
     if request.method == 'POST':
-        directory_to_move_id = request.form['directory_to_move_id']
+        response = request.get_json()
+        directory_to_move_id = response['params']['file']['directory_to_move_id']
+        # directory_to_move_id = request.form['directory_to_move_id']
         # Connect to data base by using user name and password
         user_session = current_user.connect_to_database()
         directory_from_move_id = user_session.query(UploadedFiles).filter_by(id=id).first()
-        home_redirect = '/directory/' + str(directory_from_move_id.parent_id_value)
         # change parent id
         directory_from_move_id.parent_id_value = directory_to_move_id
         user_session.commit()
         # Disconnect from user database
         user_session.close()
-        return redirect(home_redirect)
+        return jsonify({
+            "jsonrpc": "2.0",
+            "method": "file_removed",
+            "params": {'directory_from_move_id': directory_from_move_id, 'directory_to_move_id': directory_to_move_id},
+            'id': id
+        })
     elif request.method == 'GET':
-        return render_template('storage/index.html', title='Перемещение файла')
+        response = {
+            "params": {'title': 'Перемещение файла'}
+        }
+        return render_template('storage/index.html', response=response)

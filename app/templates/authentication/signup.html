@@ -17,15 +17,17 @@
             {{ messages[0]|safe }}
         {% endif %}
     {% endwith %}
-     <form class="form-signin" method="post">
+    <!--Метод из form убран method='post' Добавлен id -->
+     <form class="form-signin" id="'form" action="" method='post'>
         <h1 class="h3 mb-3 font-weight-normal">Введите логин и пароль</h1>
-         {{ form.username }}
-         {{ form.password }}
-         {{ form.password_repeat }}
-         {{ form.submit }}
+         {{ response.params.form.username }}
+         {{ response.params.form.password }}
+         {{ response.params.form.password_repeat }}
+         {{ response.params.form.submit }}
          <p class="mt-5 mb-3 text-muted">© 2020 - 2021</p>
     </form>
 </div>
+
 
 {% endblock %}
 

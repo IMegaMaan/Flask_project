@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, request, flash, jsonify
+from flask import Blueprint, render_template, redirect, url_for, request, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, logout_user, login_required, current_user
 from .models import User
@@ -13,17 +13,20 @@ authentication = Blueprint('authentication', __name__)
 def login():
     form = LoginForm()
     if request.method == 'POST':
-        name = form.name.data
-        password = form.password.data
-        remember = form.checkbox.data
+        name = form.name.data if form.name.data else request.form['name']
+        password = form.password.data if form.name.data else request.form['password']
+        remember = form.checkbox.data if form.name.data else request.form['remember']
         user = User.query.filter_by(name=name).first()
         if not user or not check_password_hash(user.password, password):
             flash('<div class="alert alert-danger">Некорректное имя пользователя или пароль</div>')
             return redirect(url_for('authentication.login'))
         login_user(user, remember=remember)
-        return redirect(url_for('storage.directories'))
+        return redirect(url_for('storage.index'))
     elif request.method == 'GET':
-        return render_template('authentication/login.html', title='Вход', form=form)
+        response = {
+            "params": {'title': 'Вход', 'form': form.form_to_json()}
+        }
+        return render_template('authentication/login.html', response=response)
     else:
         return 'Ошибка. Обратитесь к администратору.'
 
@@ -71,7 +74,10 @@ def signup():
             return redirect(url_for('authentication.signup'))
     # if user want to signup
     elif request.method == 'GET':
-        return render_template('authentication/signup.html', title='Регистрация', form=form)
+        response = {
+            "params": {'title': 'Регистрация', 'form': form.form_to_json()}
+        }
+        return render_template('authentication/signup.html', response=response)
     else:
         return 'Ошибка, обратитесь к администратору'
 
@@ -88,5 +94,7 @@ def logout():
 @authentication.route('/profile')
 @login_required
 def profile():
-    user = current_user
-    return render_template('authentication/profile.html', title='Мой профиль', user=user)
+    response = {
+        "params": {'title': 'Мой профиль', 'user': current_user}
+    }
+    return render_template('authentication/profile.html', response=response)

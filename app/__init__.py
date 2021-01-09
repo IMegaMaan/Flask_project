@@ -1,17 +1,20 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
-from .config import DevelopmentConfig
+from flask_jsglue import JSGlue
 import os
 
 # connect to Database
 db = SQLAlchemy()
 
 
-def create_app():
-    app = Flask(__name__)
+def create_app(config):
 
-    app.config.from_object(DevelopmentConfig)
+    app = Flask(__name__)
+    #jsglue- for frontend part of project
+    jsglue = JSGlue()
+    app.config.from_object(config)
+    jsglue.init_app(app)
     db.init_app(app)
 
     # Working with login

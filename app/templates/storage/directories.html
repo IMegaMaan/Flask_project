@@ -2,7 +2,7 @@
 {% block main %}
 
 <div class="container">
-{%for dir_list in db_directories %}
+{%for dir_list in response.params.db_directories %}
 
 <div class="row row-cols-1 row-cols-md-3 mb-3 text-center">
     {%for dir in dir_list %}
@@ -29,5 +29,5 @@
 
 {% endfor %}
 </div>
-
+<script src="{{ url_for('static', filename='directories.js') }}"></script>
 {% endblock %}

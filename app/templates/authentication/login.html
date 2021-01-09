@@ -18,13 +18,13 @@
         {% endif %}
     {% endwith %}
 
-    <!-- Регистрация- новая форма, рабочая -->
-    <form class="form-signin" method="post" action="/login">
+    <!-- Добавить id в form, убрать action- перенести в JS, method убрать -->
+    <form class="form-signin" id="form" method="post" action="">
          <h1 class="h3 mb-3 font-weight-normal">Вход в систему</h1>
-      {{ form.name }}
-      {{ form.password }}
-      {{ form.checkbox()}} {{ form.checkbox.label (class="checkbox mb-3") }}
-      {{ form.submit }}
+      {{ response.params.form.name }}
+      {{ response.params.form.password }}
+      {{ response.params.form.checkbox()}} {{ response.params.form.checkbox.label (class="checkbox mb-3") }}
+      {{ response.params.form.submit }}
       <p class="mt-5 mb-3 text-muted">© 2020 - 2021</p>
     </form>
 </div>

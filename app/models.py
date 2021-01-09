@@ -1,5 +1,5 @@
 from flask import url_for
-from flask_login import UserMixin
+from flask_login import UserMixin, AnonymousUserMixin
 from datetime import datetime
 from . import db
 
@@ -16,12 +16,11 @@ class Directories(db.Model):
 
     def to_json(self):
         json_directory = {
-            'url': url_for('storage.directories'),
-            'id': id,
+            'id': self.id,
             'name': self.name,
             'description': self.description,
             'date': self.date,
-            'user_id_value': self.user_id_value,
+            'user_id_value': self.user_id_value
         }
         return json_directory
 
@@ -50,6 +49,17 @@ class UploadedFiles(db.Model):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+    def to_json(self):
+        json_file = {
+            'id': self.id,
+            'download_count': self.download_count,
+            'name': self.name,
+            'date': self.date,
+            'parent_id_value': self.parent_id_value,
+            'name_to_download': self.name_to_download
+        }
+        return json_file
+
 
 # User model
 class User(UserMixin, db.Model):
@@ -74,7 +84,7 @@ class User(UserMixin, db.Model):
         '''
         return (''.join(self.name.split(sep='@'))).lower()
 
-    def connect_to_database(self):
+    def connect_to_database(self, database_name='flask_database'):
         '''
         Method create session of current user
         :return: user_session
@@ -82,7 +92,6 @@ class User(UserMixin, db.Model):
         from sqlalchemy import create_engine
         from sqlalchemy.orm import sessionmaker
         url = "127.0.0.1:5432"
-        database_name = 'flask_database'
         some_engine = create_engine(
             'postgresql+psycopg2://{user}:{pw}@{url}/{db}'.format(user=self.role_name(), pw=self.password,
                                                                   url=url,
@@ -93,14 +102,13 @@ class User(UserMixin, db.Model):
 
     def to_json(self):
         json_user = {
-            'url': url_for('authentication.profile', _external=True),
             'username': self.name,
             'role': self.role,
-            'directories': url_for('storage.directories', _external=True),
-            'user_session': self.connect_to_database(),
             'role_name': self.role_name()
         }
         return json_user
+
+
 
 
 # Model for role definition
@@ -115,3 +123,10 @@ class Role(db.Model):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+    def to_json(self):
+        json_role = {
+            'id': self.id,
+            'name': self.name
+        }
+        return json_role

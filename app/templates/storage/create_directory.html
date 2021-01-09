@@ -2,11 +2,11 @@
 {% block main %}
 <div class="container">
     <h1>Добавление новой директории</h1>
-    <form method="post" action="">
-        {{ form.name }}
-        {{ form.description }}
-        {{ form.submit }}
+    <form id="form">
+        {{ response.params.form.name }}
+        {{ response.params.form.description }}
+        {{ response.params.form.submit }}
     </form>
-    <script src="directory_create.js"></script>
+    <script src="{{ url_for('static', filename='directory_create.js') }}"></script>
 </div>
 {% endblock %}
