@@ -22,7 +22,7 @@ path_to = os.path.join(os.path.expandvars("%userprofile%"), "Downloads", name)
 ## 3. Запуск приложения через терминал/Run app thru the terminal
 flask run
 
-## 4. Использвание приложения/App use
+## 4. Использование приложения/App use
 - Зарегестрируйтесь/ Signup
 - Войдите в систему под учетной записью / Login to the app
 - Добавляйте директории для хранения файлов- описание и название можно изменять в процессе использвания / Add directories for file storage - description and name may change during use
