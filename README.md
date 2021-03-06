@@ -30,8 +30,8 @@ storage.py, строка(row)178
 ### Мой текущий пть для сохранения файлов/ My current path to download files
 path_to = os.path.join(os.path.expandvars("%userprofile%"), "Downloads", name)
 
-## 3. Запуск приложения через терминал/Run app thru the terminal
-flask run
+## 3. Запуск приложения через терминал/Run app through the console
+`python manage.py runserver`
 
 ## 4. Использование приложения/App use
 - Зарегестрируйтесь/ Signup
