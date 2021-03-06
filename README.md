@@ -1,15 +1,25 @@
 # Flask_project
 Приложение предназначено для создания директорий, загружайте и скачивайте файлы, перемещайте внутри директорий- только для зарегистрированных пользователей/ This Flask project may create directory, upload and download files into directories for registered users.
 Для использвания только на локальном сервере/ Only for using upon the local machine
+## 0. Перед запуском, настройте переменную/Before run app:
+python
+
+Windows:
+>>>set FLASK_APP = app
+
+Lunix:
+>>>export FLASK_APP = app
+
 
 ## 1. Создание БД/Data base create
-   
-- from app import db, create_app
-- db.create_all(app=create_app()) 
--	При необходимости:
-  If necessary:
-	set FLASK_APP = app	
-	
+
+В терминале/ in console:
+
+python
+>>>from app import db, create_app
+>>>from config import DevelopmentConfig
+>>>db.create_all(app=create_app(DevelopmentConfig))
+
 ## 2. Настройка Пути сохранения загружаемых файлов/Setting the save path for uploaded files
 storage.py, строка(row)178
 
