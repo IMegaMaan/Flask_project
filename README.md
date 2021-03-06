@@ -5,20 +5,21 @@
 python
 
 Windows:
->>>set FLASK_APP = app
+set FLASK_APP = app
 
 Lunix:
->>>export FLASK_APP = app
+export FLASK_APP = app
 
 
 ## 1. Создание БД/Data base create
 
 В терминале/ in console:
-
-python
+```
+>>>python
 >>>from app import db, create_app
 >>>from config import DevelopmentConfig
 >>>db.create_all(app=create_app(DevelopmentConfig))
+```
 
 ## 2. Настройка Пути сохранения загружаемых файлов/Setting the save path for uploaded files
 storage.py, строка(row)178
