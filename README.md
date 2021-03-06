@@ -15,7 +15,7 @@ export FLASK_APP = app
 
 В терминале/ in console:
 ```
->>>python
+python
 >>>from app import db, create_app
 >>>from config import DevelopmentConfig
 >>>db.create_all(app=create_app(DevelopmentConfig))
